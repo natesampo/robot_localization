@@ -17,6 +17,18 @@ def convert_pose_to_xy_and_theta(pose):
     angles = euler_from_quaternion(orientation_tuple)
     return (pose.position.x, pose.position.y, angles[2])
 
+class Particle():
+    def __init__(self, x, y, theta):
+        self.x = x
+        self.y = y
+        self.theta = theta
+        self.history = []
+
+    def transform(self, d, theta):
+        self.x += math.cos(self.theta)*d
+        self.y += math.sin(self.theta)*d
+        self.theta += theta
+
 class ParticleFilter(object):
     """ The class that represents a Particle Filter ROS Node
     """
