@@ -5,17 +5,23 @@
 from __future__ import print_function, division
 import rospy
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, Pose
-from tf.transformations import euler_from_quaternion, rotation_matrix, quaternion_from_matrix
-import occupancy_field as O_F
 
 from helper_functions import TFHelper
 from occupancy_field import OccupancyField
 
-def convert_pose_to_xy_and_theta(pose):
-    """ Convert pose (geometry_msgs.Pose) to a (x,y,yaw) tuple """
-    orientation_tuple = (pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w)
-    angles = euler_from_quaternion(orientation_tuple)
-    return (pose.position.x, pose.position.y, angles[2])
+
+def make_more_points(old_particle, transformation):
+    """This function takes a point particle object and a transformation list. The list contains tupples one for
+     each transformations. The first element in the tuple is the distance driven straight. the z translation is the turning """
+     point_children = []
+     for angle in range(0,342,18):
+         new_child = Particle(old_particle.x, old_particle.y, (old_particle.theta+angle)%360)
+         new_child.history = old_particle.history.append((old_particle.x,old_particle.y,old_particle.theta))
+         for i in transformation:
+             new_child.transform(transformation[i][0],transformation[i][1])
+         point_children.append(new_child)
+    return point_children
+
 
 class Particle():
     def __init__(self, x, y, theta):
