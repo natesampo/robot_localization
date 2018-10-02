@@ -13,9 +13,9 @@ from std_msgs.msg import Header
 from geometry_msgs.msg import Twist, Vector3, Point, PointStamped
 from nav_msgs.msg import Odometry
 import Xlib.display as display
+import occupancy_field as O_F
 from tf.transformations import euler_from_quaternion, rotation_matrix, quaternion_from_matrix
 import numpy as np
-import occupancy_field as O_F
 #import helper_functions
 
 """
@@ -62,11 +62,6 @@ def angle_diff(a, b):
     else:
         return d2
 
-def make_more_points(particle,transformation):
-    """this function takes a particle object and a list of tuples. The tuples contain the trainsformation steps
-    (action,)
-
-     """
 
 # Creating the neato's class
 class Neato(object):
@@ -85,8 +80,4 @@ class Neato(object):
         #method decides to randomly translate the robot
 
 #creating a class for a certain particle
-class particle(object):
-    def _init_(self):
-        self.x = 0
-        self.y = 0
-        self.history = []
+class particle
