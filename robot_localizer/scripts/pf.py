@@ -31,9 +31,9 @@ class Particle():
         self.history = []
 
     def transform(self, d, theta):
-        self.x += math.cos(self.theta)*d
-        self.y += math.sin(self.theta)*d
-        self.theta += theta
+        self.x += math.cos(math.radians(self.theta))*d
+        self.y += math.sin(math.radians(self.theta))*d
+        self.theta += theta % 360
 
 class ParticleFilter(object):
     """ The class that represents a Particle Filter ROS Node
