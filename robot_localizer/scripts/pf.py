@@ -8,32 +8,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, Pose
 
 from helper_functions import TFHelper
 from occupancy_field import OccupancyField
-
-
-def make_more_points(old_particle, transformation):
-    """This function takes a point particle object and a transformation list. The list contains tupples one for
-     each transformations. The first element in the tuple is the distance driven straight. the z translation is the turning """
-     point_children = []
-     for angle in range(0,342,18):
-         new_child = Particle(old_particle.x, old_particle.y, (old_particle.theta+angle)%360)
-         new_child.history = old_particle.history.append((old_particle.x,old_particle.y,old_particle.theta))
-         for i in transformation:
-             new_child.transform(transformation[i][0],transformation[i][1])
-         point_children.append(new_child)
-    return point_children
-
-
-class Particle():
-    def __init__(self, x, y, theta):
-        self.x = x
-        self.y = y
-        self.theta = theta
-        self.history = []
-
-    def transform(self, d, theta):
-        self.x += math.cos(math.radians(self.theta))*d
-        self.y += math.sin(math.radians(self.theta))*d
-        self.theta += theta % 360
+from particle_manager import ParticleManager, Particle
 
 class ParticleFilter(object):
     """ The class that represents a Particle Filter ROS Node
@@ -65,8 +40,7 @@ class ParticleFilter(object):
             self.transform_helper.convert_pose_to_xy_and_theta(msg.pose.pose)
 
         # TODO this should be deleted before posting
-        self.transform_helper.fix_map_to_odom_transform(msg.pose.pose,
-                                                        msg.header.stamp)
+        # self.transform_helper.fix_map_to_odom_transform(msg.pose.pose, msg.header.stamp)
         # initialize your particle filter based on the xy_theta tuple
 
     def run(self):
