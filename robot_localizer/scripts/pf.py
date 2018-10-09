@@ -9,26 +9,15 @@ from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, Pose
 from helper_functions import TFHelper
 from occupancy_field import OccupancyField
 from particle_manager import ParticleManager, Particle
+from sensor_manager import SensorManager
 
 class ParticleFilter(object):
     """ The class that represents a Particle Filter ROS Node
     """
     def __init__(self):
         rospy.init_node('pf')
-
-        # pose_listener responds to selection of a new approximate robot
-        # location (for instance using rviz)
-        rospy.Subscriber("initialpose",
-                         PoseWithCovarianceStamped,
-                         self.update_initial_pose)
-
-        # publisher for the particle cloud for visualizing in rviz.
-        self.particle_pub = rospy.Publisher("particlecloud",
-                                            PoseArray,
-                                            queue_size=10)
-
-        # create instances of two helper objects that are provided to you
-        # as part of the project
+        rospy.Subscriber("initialpose", PoseWithCovarianceStamped, self.update_initial_pose)
+        self.particle_pub = rospy.Publisher("particlecloud", PoseArray, queue_size=10)
         self.occupancy_field = OccupancyField()
         self.transform_helper = TFHelper()
 

@@ -4,6 +4,8 @@ from __future__ import print_function, division
 import rospy
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, Pose
 
+import random
+
 from helper_functions import TFHelper
 from occupancy_field import OccupancyField
 
@@ -12,7 +14,7 @@ class Particle(object):
         self.x = x
         self.y = y
         self.theta = theta
-        self.probability = 0
+        self.keepRange = (0, 0)
 
     def transform(self, d, theta):
         self.x += math.cos(math.radians(self.theta))*d
@@ -25,19 +27,38 @@ class ParticleManager(object):
     def __init__(self):
         self.angleResolution = 18
         self.particles = []
-        self.keepRate = 0.3
-        self.totalParticles = 250
-        self.initDeviationXY = 0.3
-        self.initDeviationTheta = math.pi/3
+        self.keepRate = 1/3
+        self.totalParticles = 240
+        self.deviationXY = 0.1
+        self.deviationTheta = 5
+        self.totalParticleProbability = 0
 
-    def generate_particles(self, pose):
-        """This method generates all particles within our accepted deviation of the estimated pose"""
-        for i in range():
-            da
+    def init_particles(self, OF):
+        """ Generates the initial set of particles """
+        while len(self.particles < self.totalParticles):
+            self.particles.append(Particle(random.randrange(0, OF.map.info.width), random.randrange(OF.map.info.height), random.randrange(0, 360)))
+
+    def generate_particles(self):
+        """ This method generates all particles within our accepted deviation of the current particles """
+        keptParticleNumber = len(self.particles)
+        for i in range(keptParticleNumber, self.totalParticles):
+            copyParticle = self.particles[i % keptParticleNumber]
+            xdev = random.randrange(0, self.deviationXY*200)/100 - self.deviationXY
+            ydev = random.randrange(0, self.deviationXY*200)/100 - self.deviationXY
+            tdev = random.randrange(0, self.deviationTheta*200)/100 - self.deviationTheta
+            self.particles.append(Particle(copyParticle.x + xdev, copyParticle.y + ydev, copyParticle.theta + tdev))
 
     def trim_particles(self):
         """ Trims particles down to keepRate * total particles using random weighted sampling. Here we are keeping 30% of particles """
+        keptParticles = []
+        while len(keptParticles) < totalParticles*keepRate:
+            keep = random.randrange(0, self.totalParticleProbability+1)
+            for particle in self.particles:
+                if keep >= particle.keepRange[0] && keep < particle.keepRange[1]:
+                    keptParticles.append(Particle(particle.x, particle.y, particle.theta))
+                    break
 
+        self.particles = keptParticles
 
     def transform_particles(self, d, theta):
         """ Transforms all particles to match the robots transform """
@@ -46,5 +67,13 @@ class ParticleManager(object):
 
     def update_probabilities(self, closestScan, OF):
         """ Updates the probability for every particle that it is the correct robot position """
+        self.totalParticleProbability = 0
         for particle in self.particles:
-            particle.probability = abs(closestScan, OF.get_closest_obstacle_distance(particle.x, particle.y)[0])
+            closestDist = OF.get_closest_obstacle_distance(particle.x, particle.y)
+            if closestDist == float('nan'):
+                tempProbability = 0
+            else:
+                tempProbability = 1000 - 100*abs(closestScan - closestDist[0])
+
+            particle.keepRange = (self.totalParticleProbability, self.totalParticleProbability + tempProbability)
+            self.totalParticleProbability += tempProbability
