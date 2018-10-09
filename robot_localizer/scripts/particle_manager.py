@@ -54,7 +54,7 @@ class ParticleManager(object):
         while len(keptParticles) < totalParticles*keepRate:
             keep = random.randrange(0, self.totalParticleProbability+1)
             for particle in self.particles:
-                if keep >= particle.keepRange[0] && keep < particle.keepRange[1]:
+                if keep >= particle.keepRange[0] and keep < particle.keepRange[1]:
                     keptParticles.append(Particle(particle.x, particle.y, particle.theta))
                     break
 
