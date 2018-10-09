@@ -12,7 +12,7 @@ from occupancy_field import OccupancyField
 from particle_manager import ParticleManager, Particle
 from sensor_manager import SensorManager
 
-def input_thread(myTeleop):
+def input_thread(n):
     '''Seperate thread for user input, loops, checking for button input'''
     running = True
     while running:
@@ -23,6 +23,9 @@ def input_thread(myTeleop):
         if key == 'q':
             '''Kill the program and stop the robot'''
             running = False
+            n.vel.linear.x = 0
+            n.vel.angular.z = 0
+            n.velocityPublisher.publish(n.vel)
             os.kill(os.getpid(), signal.SIGINT)
 
 def getDistance(a1, a2, b1, b2):
