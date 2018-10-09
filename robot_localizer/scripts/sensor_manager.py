@@ -16,13 +16,13 @@ def convert_pose_to_xy_and_theta(pose):
 
 class SensorManager:
     def __init__(self):
-        self.newLaserScan = false
+        self.newLaserScan = True
         self.laserScan = []
         self.pose = (0, 0, 0)
         self.minRange = np.inf
         self.lastScan = self.pose
-        rospy.Subscriber("/scan", LaserScan, self.getLaserScan)
         rospy.Subscriber("/odom", Odometry, self.getOdometry)
+        rospy.Subscriber("/scan", LaserScan, self.getLaserScan)
 
     def getLaserScan(self, msg):
         if self.newLaserScan:
@@ -33,7 +33,7 @@ class SensorManager:
                     self.minRange = tempRange
 
             self.lastScan = self.pose
-            self.newLaserScan = false
+            self.newLaserScan = False
 
     def getOdometry(self, msg):
         self.pose = convert_pose_to_xy_and_theta(msg.pose.pose)
