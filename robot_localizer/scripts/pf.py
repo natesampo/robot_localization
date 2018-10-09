@@ -67,6 +67,7 @@ class ParticleFilter(object):
         while not(rospy.is_shutdown()):
             self.vel.linear.x = 0
             self.vel.angular.z = 0
+            print('why wont this print')
             if not self.sensor_manager.newLaserScan and (getDistance(self.sensor_manager.lastScan[0], self.sensor_manager.lastScan[1], self.sensor_manager.pose[0], self.sensor_manager.pose[1]) > self.scanDistance or math.degrees(angle_diff(math.radians(self.sensor_manager.pose[2]), math.radians(self.sensor_manager.lastScan[2]))) > self.scanAngle):
                 self.sensor_manager.newLaserScan = True
                 self.moved = (getDistance(self.sensor_manager.lastScan[0], self.sensor_manager.lastScan[1], self.sensor_manager.pose[0], self.sensor_manager.pose[1]), math.degrees(angle_diff(math.radians(self.sensor_manager.pose[2]), math.radians(self.sensor_manager.lastScan[2]))))
@@ -100,8 +101,6 @@ class ParticleFilter(object):
 
             self.velocityPublisher.publish(self.vel)
             self.transform_helper.send_last_map_to_odom_transform()
-            r.sleep()
-
 
 if __name__ == '__main__':
     n = ParticleFilter()
