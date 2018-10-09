@@ -5,6 +5,7 @@ import rospy
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, Pose
 
 import random
+import math
 
 from helper_functions import TFHelper
 from occupancy_field import OccupancyField
@@ -35,7 +36,7 @@ class ParticleManager(object):
 
     def init_particles(self, OF):
         """ Generates the initial set of particles """
-        while len(self.particles < self.totalParticles):
+        while len(self.particles) < self.totalParticles:
             self.particles.append(Particle(random.randrange(0, OF.map.info.width), random.randrange(OF.map.info.height), random.randrange(0, 360)))
 
     def generate_particles(self):
@@ -51,7 +52,7 @@ class ParticleManager(object):
     def trim_particles(self):
         """ Trims particles down to keepRate * total particles using random weighted sampling. Here we are keeping 30% of particles """
         keptParticles = []
-        while len(keptParticles) < totalParticles*keepRate:
+        while len(keptParticles) < self.totalParticles*self.keepRate:
             keep = random.randrange(0, self.totalParticleProbability+1)
             for particle in self.particles:
                 if keep >= particle.keepRange[0] and keep < particle.keepRange[1]:
@@ -70,7 +71,7 @@ class ParticleManager(object):
         self.totalParticleProbability = 0
         for particle in self.particles:
             closestDist = OF.get_closest_obstacle_distance(particle.x, particle.y)
-            if closestDist == float('nan'):
+            if closestDist != closestDist:
                 tempProbability = 0
             else:
                 tempProbability = 1000 - 100*abs(closestScan - closestDist[0])

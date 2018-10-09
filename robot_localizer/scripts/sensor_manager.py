@@ -2,16 +2,23 @@
 
 from __future__ import print_function, division
 import rospy
-from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, Pose
+from geometry_msgs.msg import Twist, PoseWithCovarianceStamped, PoseArray, Pose
+from sensor_msgs.msg import LaserScan
+from nav_msgs.msg import Odometry
 import numpy as np
 
 from helper_functions import TFHelper
 from occupancy_field import OccupancyField
+import math
+
+import tf.transformations as t
+from tf import TransformListener
+from tf import TransformBroadcaster
 
 def convert_pose_to_xy_and_theta(pose):
     """ Convert pose (geometry_msgs.Pose) to a (x,y,yaw) tuple """
     orientation_tuple = (pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w)
-    angles = euler_from_quaternion(orientation_tuple)
+    angles = t.euler_from_quaternion(orientation_tuple)
     return (pose.position.x, pose.position.y, angles[2])
 
 class SensorManager:
@@ -27,8 +34,7 @@ class SensorManager:
     def getLaserScan(self, msg):
         if self.newLaserScan:
             self.minRange = np.inf
-            for i in len(msg.ranges):
-                tempRange = msg.ranges[i]
+            for tempRange in msg.ranges:
                 if tempRange != 0.0 and tempRange < self.minRange:
                     self.minRange = tempRange
 

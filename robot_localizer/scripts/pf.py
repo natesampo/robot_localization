@@ -4,29 +4,14 @@
 
 from __future__ import print_function, division
 import rospy
-from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, Pose
+from geometry_msgs.msg import Twist, PoseWithCovarianceStamped, PoseArray, Pose
 import numpy as np
+import math
 
 from helper_functions import TFHelper
 from occupancy_field import OccupancyField
 from particle_manager import ParticleManager, Particle
 from sensor_manager import SensorManager
-
-def input_thread(n):
-    '''Seperate thread for user input, loops, checking for button input'''
-    running = True
-    while running:
-        tty.setraw(sys.stdin.fileno())
-        select.select([sys.stdin], [], [], 0)
-        key = sys.stdin.read(1)
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
-        if key == 'q':
-            '''Kill the program and stop the robot'''
-            running = False
-            n.vel.linear.x = 0
-            n.vel.angular.z = 0
-            n.velocityPublisher.publish(n.vel)
-            os.kill(os.getpid(), signal.SIGINT)
 
 def getDistance(a1, a2, b1, b2):
     return math.sqrt((a1 - b1)*(a1 - b1) + (a2 - b2)*(a2 - b2))
@@ -120,13 +105,4 @@ class ParticleFilter(object):
 
 if __name__ == '__main__':
     n = ParticleFilter()
-    settings = termios.tcgetattr(sys.stdin)
-
-    #Start new thread for input so it is not on the same thread as the robot processing
-    thread.start_new_thread(input_thread, (n, ))
-    try:
-        n.run()
-    except KeyboardInterrupt:
-        n.vel.linear.x = 0
-        n.vel.angular.z = 0
-        n.velocityPublisher.publish(n.vel)
+    n.run()
