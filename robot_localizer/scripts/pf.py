@@ -46,7 +46,6 @@ class ParticleFilter(object):
         self.occupancy_field = OccupancyField()
         self.transform_helper = TFHelper()
         self.particle_manager = ParticleManager()
-        self.particle_manager.init_particles(self.occupancy_field)
         self.sensor_manager = SensorManager()
         self.scanDistance = 0.2
         self.scanAngle = 30
@@ -58,6 +57,11 @@ class ParticleFilter(object):
             by another ROS Node or could come from the rviz GUI """
         xy_theta = \
             self.transform_helper.convert_pose_to_xy_and_theta(msg.pose.pose)
+        self.particle_manager.init_particles(self.occupancy_field)
+        poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
+        for particle in self.particle_manager.particles:
+            poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle[0], particle[1], particle[2]))
+        self.particle_pub.publish(poseArray)
 
     def run(self):
         r = rospy.Rate(5)
