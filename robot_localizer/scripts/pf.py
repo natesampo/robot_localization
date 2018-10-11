@@ -7,7 +7,7 @@ import rospy
 from geometry_msgs.msg import Twist, PoseWithCovarianceStamped, PoseArray, Pose
 import numpy as np
 import math
-
+from std_msgs.msg import Header
 from helper_functions import TFHelper
 from occupancy_field import OccupancyField
 from particle_manager import ParticleManager, Particle
