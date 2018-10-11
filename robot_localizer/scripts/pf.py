@@ -43,16 +43,14 @@ class ParticleFilter(object):
         rospy.init_node('pf')
         rospy.Subscriber("initialpose", PoseWithCovarianceStamped, self.update_initial_pose)
         self.particle_publisher = rospy.Publisher("particlecloud", PoseArray, queue_size=10)
-        self.velocity_publisher = rospy.Publisher('cmd_vel', Twist, queue_size=5)
         self.occupancy_field = OccupancyField()
         self.transform_helper = TFHelper()
         self.particle_manager = ParticleManager()
         self.particle_manager.init_particles(self.occupancy_field)
         self.sensor_manager = SensorManager()
-        self.scanDistance = 0.25
+        self.scanDistance = 0.2
         self.scanAngle = 30
         self.moved = (0, 0)
-        self.vel = Twist()
 
     def update_initial_pose(self, msg):
         """ Callback function to handle re-initializing the particle filter
@@ -65,8 +63,6 @@ class ParticleFilter(object):
         r = rospy.Rate(5)
 
         while not(rospy.is_shutdown()):
-            self.vel.linear.x = 0
-            self.vel.angular.z = 0
             print('why wont this print')
             if not self.sensor_manager.newLaserScan and (getDistance(self.sensor_manager.lastScan[0], self.sensor_manager.lastScan[1], self.sensor_manager.pose[0], self.sensor_manager.pose[1]) > self.scanDistance or math.degrees(angle_diff(math.radians(self.sensor_manager.pose[2]), math.radians(self.sensor_manager.lastScan[2]))) > self.scanAngle):
                 self.sensor_manager.newLaserScan = True
@@ -96,10 +92,6 @@ class ParticleFilter(object):
                     if self.sensor_manager.laserScan[i] != 0.0 and self.sensor_manager.laserScan[i] < minDist:
                         minDist = self.sensor_manager.laserScan[i]
 
-                self.vel.linear.x = 0.1
-                self.vel.angular.z = 0.1
-
-            self.velocityPublisher.publish(self.vel)
             self.transform_helper.send_last_map_to_odom_transform()
 
 if __name__ == '__main__':
