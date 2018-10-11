@@ -78,19 +78,6 @@ class ParticleFilter(object):
                 for particle in self.particle_manager.particles:
                     poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle[0], particle[1], particle[2]))
                 self.particle_pub.publish(poseArray)
-            else:
-                minDist = np.inf
-                for i in range(340, 360):
-                    if minDist < 0.5:
-                        break
-                    if self.sensor_manager.laserScan[i] != 0.0 and self.sensor_manager.laserScan[i] < minDist:
-                        minDist = self.sensor_manager.laserScan[i]
-
-                for i in range(0, 20):
-                    if minDist < 0.5:
-                        break
-                    if self.sensor_manager.laserScan[i] != 0.0 and self.sensor_manager.laserScan[i] < minDist:
-                        minDist = self.sensor_manager.laserScan[i]
 
             self.transform_helper.send_last_map_to_odom_transform()
 
