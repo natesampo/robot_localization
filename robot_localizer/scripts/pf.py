@@ -75,7 +75,7 @@ class ParticleFilter(object):
                 self.particle_manager.trim_particles()
                 self.particle_manager.generate_particles()
                 poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
-                for particle in self.particle_manager.current_particles:
+                for particle in self.particle_manager.particles:
                     poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle[0], particle[1], particle[2]))
                 self.particle_pub.publish(poseArray)
             else:
