@@ -5,7 +5,6 @@
 from __future__ import print_function, division
 import rospy
 from geometry_msgs.msg import Twist, PoseWithCovarianceStamped, PoseArray, Pose
-from std_msgs.msg import Header
 import numpy as np
 import math
 from std_msgs.msg import Header
@@ -70,10 +69,13 @@ class ParticleFilter(object):
         while not(rospy.is_shutdown()):
             print('why wont this print')
             if not self.sensor_manager.newLaserScan and (getDistance(self.sensor_manager.lastScan[0], self.sensor_manager.lastScan[1], self.sensor_manager.pose[0], self.sensor_manager.pose[1]) > self.scanDistance or math.degrees(angle_diff(math.radians(self.sensor_manager.pose[2]), math.radians(self.sensor_manager.lastScan[2]))) > self.scanAngle):
+                print("encountered ifnot")
                 self.sensor_manager.newLaserScan = True
                 self.moved = (getDistance(self.sensor_manager.lastScan[0], self.sensor_manager.lastScan[1], self.sensor_manager.pose[0], self.sensor_manager.pose[1]), math.degrees(angle_diff(math.radians(self.sensor_manager.pose[2]), math.radians(self.sensor_manager.lastScan[2]))))
             elif self.sensor_manager.newLaserScan:
+                print("encounterd elif")
                 while self.sensor_manager.newLaserScan:
+                    print("stuck in while")
                     continue
                 self.particle_manager.transform_particles(self.moved[0], self.moved[1])
                 self.particle_manager.update_probabilities(self.sensor_manager.minRange, self.occupancy_field)
