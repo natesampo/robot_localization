@@ -27,16 +27,23 @@ class SensorManager:
         self.laserScan = []
         self.pose = (0, 0, 0)
         self.minRange = np.inf
+        self.frontRange = np.inf
         self.lastScan = self.pose
+        self.closestAngles = []
         rospy.Subscriber("/odom", Odometry, self.getOdometry)
         rospy.Subscriber("/scan", LaserScan, self.getLaserScan)
 
     def getLaserScan(self, msg):
         if self.newLaserScan:
+            self.closestAngles = []
             self.minRange = np.inf
+            self.frontRange = np.inf
             for tempRange in msg.ranges:
                 if tempRange != 0.0 and tempRange < self.minRange:
                     self.minRange = tempRange
+
+            for i in range(0, 360, 18):
+                self.closestAngles.append(msg.ranges[i])
 
             self.lastScan = self.pose
             self.newLaserScan = False

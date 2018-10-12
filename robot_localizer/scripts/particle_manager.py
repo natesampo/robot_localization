@@ -6,6 +6,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, Pose
 
 import random
 import math
+import numpy as np
 
 from helper_functions import TFHelper
 from occupancy_field import OccupancyField
@@ -29,15 +30,19 @@ class ParticleManager(object):
         self.angleResolution = 18
         self.particles = []
         self.keepRate = 1/3
-        self.totalParticles = 600
+        self.totalParticles = 2400
         self.deviationXY = 0.1
         self.deviationTheta = 5
         self.totalParticleProbability = 0
+        self.maxDistanceFromWall = 1
 
     def init_particles(self, OF):
         """ Generates the initial set of particles """
         while len(self.particles) < self.totalParticles:
-            self.particles.append(Particle(random.randrange(0, round(OF.map.info.width*OF.map.info.resolution)), random.randrange(round(OF.map.info.height*OF.map.info.resolution)), random.randrange(0, 360)))
+            tempParticle = Particle(random.randrange(1000*round(OF.map.info.width*OF.map.info.resolution))/1000, random.randrange(round(1000*OF.map.info.height*OF.map.info.resolution/3))/1000, random.randrange(0, 360))
+            closestDist = OF.get_closest_obstacle_distance(tempParticle.x, tempParticle.y)
+            if closestDist == closestDist and closestDist <= self.maxDistanceFromWall:
+                self.particles.append(tempParticle)
 
     def generate_particles(self):
         """ This method generates all particles within our accepted deviation of the current particles """
@@ -67,15 +72,23 @@ class ParticleManager(object):
         for particle in self.particles:
             particle.transform(d, theta)
 
-    def update_probabilities(self, closestScan, OF):
+    def update_probabilities(self, closestScan, OF, closestAngles):
         """ Updates the probability for every particle that it is the correct robot position """
         self.totalParticleProbability = 0
         for particle in self.particles:
             closestDist = OF.get_closest_obstacle_distance(particle.x, particle.y)
-            if closestDist != closestDist:
+            if closestDist != closestDist or closestDist > self.maxDistanceFromWall:
                 tempProbability = 0
             else:
                 tempProbability = 1000 - 100*abs(closestScan - closestDist)
+                tempAngle = 0
+                for angle in closestAngles:
+                    if angle != 0.0 and angle != np.inf:
+                        closestDist = OF.get_closest_obstacle_distance(particle.x + math.cos(math.radians(particle.theta + tempAngle))*angle, particle.y + math.sin(math.radians(particle.theta + tempAngle))*angle)
+                        if closestDist == closestDist and closestDist <= self.maxDistanceFromWall:
+                            tempProbability += 2000 - 100*abs(angle - closestDist)
+
+                    tempAngle += 18
 
             particle.keepRange = (self.totalParticleProbability, self.totalParticleProbability + tempProbability)
             self.totalParticleProbability += tempProbability
