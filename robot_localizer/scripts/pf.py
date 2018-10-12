@@ -66,17 +66,21 @@ class ParticleFilter(object):
     def run(self):
         r = rospy.Rate(5)
 
-        while not(rospy.is_shutdown()):
+        while not(rospy.is_shutdown()): # while ros is not shutdown...
             print('why wont this print')
-            if not self.sensor_manager.newLaserScan and (getDistance(self.sensor_manager.lastScan[0], self.sensor_manager.lastScan[1], self.sensor_manager.pose[0], self.sensor_manager.pose[1]) > self.scanDistance or math.degrees(angle_diff(math.radians(self.sensor_manager.pose[2]), math.radians(self.sensor_manager.lastScan[2]))) > self.scanAngle):
+            #do not understand what is going on here....
+            if not self.sensor_manager.newLaserScan and ((getDistance(self.sensor_manager.lastScan[0], self.sensor_manager.lastScan[1], self.sensor_manager.pose[0], self.sensor_manager.pose[1]) > self.scanDistance) or (math.degrees(angle_diff(math.radians(self.sensor_manager.pose[2]), math.radians(self.sensor_manager.lastScan[2]))) > self.scanAngle)):
+                # ^^ if its not a new laser scan and either the distance between the last scan interval and the curent pose value is greater than 0.2 or the angle difference is greater than the scan angle threshold
+                # basically, if we turn or move and havent taken a scan for awhile, take a new scan
                 print("encountered ifnot")
-                self.sensor_manager.newLaserScan = True
+                self.sensor_manager.newLaserScan = True #take a new scan
                 self.moved = (getDistance(self.sensor_manager.lastScan[0], self.sensor_manager.lastScan[1], self.sensor_manager.pose[0], self.sensor_manager.pose[1]), math.degrees(angle_diff(math.radians(self.sensor_manager.pose[2]), math.radians(self.sensor_manager.lastScan[2]))))
-            elif self.sensor_manager.newLaserScan:
+                # we have moved this much?
+            elif self.sensor_manager.newLaserScan: # if we want to take a new laser scan
                 print("encounterd elif")
-                while self.sensor_manager.newLaserScan:
-                    print("stuck in while")
-                    continue
+                #while self.sensor_manager.newLaserScan: #while we are taking the scan, wait.
+                #    print("stuck in while")
+                #    continue
                 self.particle_manager.transform_particles(self.moved[0], self.moved[1])
                 self.particle_manager.update_probabilities(self.sensor_manager.minRange, self.occupancy_field)
                 self.particle_manager.trim_particles()

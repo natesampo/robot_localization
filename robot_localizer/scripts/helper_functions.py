@@ -14,7 +14,6 @@ from tf import TransformBroadcaster
 
 import math
 
-
 class TFHelper(object):
     """ TFHelper Provides functionality to convert poses between various
         forms, compare angles in a suitable way, and publish needed
