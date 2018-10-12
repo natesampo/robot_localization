@@ -62,7 +62,7 @@ class ParticleFilter(object):
         poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
         for particle in self.particle_manager.particles:
             poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
-        self.particle_pub.publish(poseArray)
+        self.particle_publisher.publish(poseArray)
 
     def run(self):
         r = rospy.Rate(5)
@@ -89,7 +89,7 @@ class ParticleFilter(object):
                 poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
                 for particle in self.particle_manager.particles:
                     poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
-                self.particle_pub.publish(poseArray)
+                self.particle_publisher.publish(poseArray)
 
             self.transform_helper.send_last_map_to_odom_transform()
 
