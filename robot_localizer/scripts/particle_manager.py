@@ -51,15 +51,16 @@ class ParticleManager(object):
 
     def trim_particles(self):
         """ Trims particles down to keepRate * total particles using random weighted sampling. Here we are keeping 30% of particles """
-        keptParticles = []
-        while len(keptParticles) < self.totalParticles*self.keepRate:
-            keep = random.randrange(0, self.totalParticleProbability+1)
-            for particle in self.particles:
-                if keep >= particle.keepRange[0] and keep < particle.keepRange[1]:
-                    keptParticles.append(Particle(particle.x, particle.y, particle.theta))
-                    break
+        if (self.totalParticleProbability != 0):
+            keptParticles = []
+            while len(keptParticles) < self.totalParticles*self.keepRate:
+                keep = random.randrange(0, math.ceil(self.totalParticleProbability))
+                for particle in self.particles:
+                    if keep >= particle.keepRange[0] and keep < particle.keepRange[1]:
+                        keptParticles.append(Particle(particle.x, particle.y, particle.theta))
+                        break
 
-        self.particles = keptParticles
+            self.particles = keptParticles
 
     def transform_particles(self, d, theta):
         """ Transforms all particles to match the robots transform """
@@ -74,7 +75,7 @@ class ParticleManager(object):
             if closestDist != closestDist:
                 tempProbability = 0
             else:
-                tempProbability = 1000 - 100*abs(closestScan - closestDist[0])
+                tempProbability = 1000 - 100*abs(closestScan - closestDist)
 
             particle.keepRange = (self.totalParticleProbability, self.totalParticleProbability + tempProbability)
             self.totalParticleProbability += tempProbability
