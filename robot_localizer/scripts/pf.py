@@ -47,6 +47,7 @@ class ParticleFilter(object):
         self.transform_helper = TFHelper()
         self.particle_manager = ParticleManager()
         self.sensor_manager = SensorManager()
+        self.particle_manager.init_particles(self.occupancy_field)
         self.scanDistance = 0.2
         self.scanAngle = 30
         self.moved = (0, 0)
