@@ -61,10 +61,7 @@ class ParticleFilter(object):
         poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
         for particle in self.particle_manager.particles:
             poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
-<<<<<<< Updated upstream
-=======
         #    print(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
->>>>>>> Stashed changes
         self.particle_publisher.publish(poseArray)
 
     def run(self):
@@ -85,20 +82,16 @@ class ParticleFilter(object):
                 #print(len(self.particle_manager.particles))
                 while self.sensor_manager.newLaserScan: #while we are taking the scan, wait.
                     continue
-                self.particle_manager.transform_particles(self.moved[0], self.moved[1]))
+                self.particle_manager.transform_particles(self.moved[0], self.moved[1])
                 self.particle_manager.update_probabilities(self.sensor_manager.minRange, self.occupancy_field)
-                print(len(self.particle_manager.particles)
+                print(len(self.particle_manager.particles))
                 self.particle_manager.trim_particles()
                 self.particle_manager.generate_particles()
                 print("generated some Particles")
                 poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
                 for particle in self.particle_manager.particles:
-<<<<<<< Updated upstream
                     poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
-=======
-                    poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particl.x, particle.y, particle.theta))
                 print(len(self.particle_manager.particles))
->>>>>>> Stashed changes
                 self.particle_publisher.publish(poseArray)
 
             self.transform_helper.send_last_map_to_odom_transform()

@@ -57,7 +57,7 @@ class TFHelper(object):
         angles = t.euler_from_quaternion(orientation_tuple)
         return (pose.position.x, pose.position.y, angles[2])
 
-    def convert_xy_and_theta_to_pose(x,y,theta):
+    def convert_xy_and_theta_to_pose(self,x,y,theta):
         oriantation_tuple = t.quaternion_from_euler(0,0,math.radians(theta))
         position = (x,y,0)
         return self.convert_translation_rotation_to_pose(position,oriantation_tuple)
