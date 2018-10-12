@@ -4,7 +4,7 @@
 from __future__ import print_function, division
 
 import rospy
-
+import math
 from std_msgs.msg import Header
 from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
 
@@ -56,6 +56,11 @@ class TFHelper(object):
                              pose.orientation.w)
         angles = t.euler_from_quaternion(orientation_tuple)
         return (pose.position.x, pose.position.y, angles[2])
+
+    def convert_xy_and_theta_to_pose(x,y,theta):
+        oriantation_tuple = t.quaternion_from_euler(0,0,math.radians(theta))
+        position = (x,y,0)
+        return self.convert_translation_rotation_to_pose(position,oriantation_tuple)
 
     def angle_normalize(self, z):
         """ convenience function to map an angle to the range [-pi,pi] """
