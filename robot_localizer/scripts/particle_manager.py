@@ -29,7 +29,7 @@ class ParticleManager(object):
         self.angleResolution = 18
         self.particles = []
         self.keepRate = 1/3
-        self.totalParticles = 240
+        self.totalParticles = 600
         self.deviationXY = 0.1
         self.deviationTheta = 5
         self.totalParticleProbability = 0
@@ -37,7 +37,7 @@ class ParticleManager(object):
     def init_particles(self, OF):
         """ Generates the initial set of particles """
         while len(self.particles) < self.totalParticles:
-            self.particles.append(Particle(random.randrange(0, OF.map.info.width), random.randrange(OF.map.info.height), random.randrange(0, 360)))
+            self.particles.append(Particle(random.randrange(0, round(OF.map.info.width*OF.map.info.resolution)), random.randrange(round(OF.map.info.height*OF.map.info.resolution)), random.randrange(0, 360)))
 
     def generate_particles(self):
         """ This method generates all particles within our accepted deviation of the current particles """
