@@ -60,7 +60,7 @@ class ParticleFilter(object):
         self.particle_manager.init_particles(self.occupancy_field)
         poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
         for particle in self.particle_manager.particles:
-            poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle[0], particle[1], particle[2]))
+            poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
         self.particle_pub.publish(poseArray)
 
     def run(self):
@@ -87,7 +87,7 @@ class ParticleFilter(object):
                 self.particle_manager.generate_particles()
                 poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
                 for particle in self.particle_manager.particles:
-                    poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle[0], particle[1], particle[2]))
+                    poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
                 self.particle_pub.publish(poseArray)
 
             self.transform_helper.send_last_map_to_odom_transform()
