@@ -22,8 +22,9 @@ def convert_pose_to_xy_and_theta(pose):
     return (pose.position.x, pose.position.y, angles[2])
 
 class SensorManager:
+    """ Class that contains all of the sensor data for the robot, including odom and lidar scan subscribers """
     def __init__(self):
-        self.newLaserScan = True
+        self.newLaserScan = False
         self.laserScan = []
         self.pose = (0, 0, 0)
         self.minRange = np.inf
@@ -34,10 +35,14 @@ class SensorManager:
         rospy.Subscriber("/scan", LaserScan, self.getLaserScan)
 
     def getLaserScan(self, msg):
+        #If we are looking for a new laser scan, get the data for a new one
         if self.newLaserScan:
             self.closestAngles = []
             self.minRange = np.inf
             self.frontRange = np.inf
+
+            #Find the closest obstacle to the robot that the laser scan sees
+            #This is used to compare against the occupancy field for each particle
             for tempRange in msg.ranges:
                 if tempRange != 0.0 and tempRange < self.minRange:
                     self.minRange = tempRange
@@ -46,7 +51,10 @@ class SensorManager:
                 self.closestAngles.append(msg.ranges[i])
 
             self.lastScan = self.pose
+
+            #We have created a new laser scan, so we do not need new data
             self.newLaserScan = False
 
     def getOdometry(self, msg):
+        #Get the pose of the robot
         self.pose = convert_pose_to_xy_and_theta(msg.pose.pose)

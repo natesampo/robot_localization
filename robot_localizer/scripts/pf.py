@@ -14,6 +14,7 @@ from particle_manager import ParticleManager, Particle
 from sensor_manager import SensorManager
 
 def getDistance(a1, a2, b1, b2):
+    #a^2 + b^2 = c^2
     return math.sqrt((a1 - b1)*(a1 - b1) + (a2 - b2)*(a2 - b2))
 
 class ParticleFilter(object):
@@ -21,7 +22,6 @@ class ParticleFilter(object):
     """
     def __init__(self):
         rospy.init_node('pf')
-        rospy.Subscriber("initialpose", PoseWithCovarianceStamped, self.update_initial_pose)
         self.particle_publisher = rospy.Publisher("particlecloud", PoseArray, queue_size=10)
         self.occupancy_field = OccupancyField()
         self.transform_helper = TFHelper()
@@ -32,37 +32,46 @@ class ParticleFilter(object):
         self.scanAngle = 0.5
         self.moved = (0, 0)
 
-    def update_initial_pose(self, msg):
-        """ Callback function to handle re-initializing the particle filter
-            based on a pose estimate.  These pose estimates could be generated
-            by another ROS Node or could come from the rviz GUI """
-        xy_theta = self.transform_helper.convert_pose_to_xy_and_theta(msg.pose.pose)
-        self.particle_manager.init_particles(self.occupancy_field)
-        poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
-        for particle in self.particle_manager.particles:
-            poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
-        #    print(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
-        self.particle_publisher.publish(poseArray)
-
     def run(self):
         r = rospy.Rate(5)
 
-        while not(rospy.is_shutdown()): # while ros is not shutdown...
-            #do not understand what is going on here....
+        while not(rospy.is_shutdown()):
+
+            #Create a pose array with all of the current particles for easy viewing in Rviz
+            poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
+            for particle in self.particle_manager.particles:
+                poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
+
+            #Publish the pose array of the current particles
+            self.particle_publisher.publish(poseArray)
+
+            #If we are not already looking for a new laser scan but have moved a moderate distance, set the flag to look for a new laser scan
             if not self.sensor_manager.newLaserScan and ((getDistance(self.sensor_manager.lastScan[0], self.sensor_manager.lastScan[1], self.sensor_manager.pose[0], self.sensor_manager.pose[1]) > self.scanDistance) or self.transform_helper.angle_diff(math.radians(self.sensor_manager.pose[2]), math.radians(self.sensor_manager.lastScan[2])) > self.scanAngle):
-                # ^^ if its not a new laser scan and either the distance between the last scan interval and the curent pose value is greater than 0.2 or the angle difference is greater than the scan angle threshold
-                # basically, if we turn or move and havent taken a scan for awhile, take a new scan
-                self.sensor_manager.newLaserScan = True #take a new scan
+
+                #Set the flag to look for a new laser scan and mark where we last took laser scan data so we know how far we can move before taking another
+                self.sensor_manager.newLaserScan = True
                 self.moved = (getDistance(self.sensor_manager.lastScan[0], self.sensor_manager.lastScan[1], self.sensor_manager.pose[0], self.sensor_manager.pose[1]), math.degrees(self.transform_helper.angle_diff(self.sensor_manager.pose[2], self.sensor_manager.lastScan[2])))
-                # we have moved this much?
-            elif self.sensor_manager.newLaserScan: # if we want to take a new laser scan
-                #print(len(self.particle_manager.particles))
-                while self.sensor_manager.newLaserScan: #while we are taking the scan, wait.
+
+            #Here, we are currently looking for a new laser scan and haven't moved sufficient distance to warrant a new one
+            elif self.sensor_manager.newLaserScan:
+
+                #While we are looking for a new laser scan, wait for the data to come in so that we don't process the particles on old data
+                while self.sensor_manager.newLaserScan:
                     continue
+
+                #Tranform all particles to match the transform the robot has done since the last laser scan and particle trimming
                 self.particle_manager.transform_particles(self.moved[0], self.moved[1])
+
+                #Update the particle probabilities so we know how likely each particle is based on current laser scan data
                 self.particle_manager.update_probabilities(self.sensor_manager.minRange, self.occupancy_field, self.sensor_manager.closestAngles)
+
+                #Do a random weighted selection of all of the current particles to choose particles to be passed on to the next round of laser scan data
                 self.particle_manager.trim_particles()
+
+                #Generate new particles around the kept particles with some added noise
                 self.particle_manager.generate_particles()
+
+                #Create and publish the pose array with the new particles for viewing in Rviz
                 poseArray = PoseArray(header = Header(seq = 10, stamp = rospy.get_rostime(), frame_id = 'map'))
                 for particle in self.particle_manager.particles:
                     poseArray.poses.append(self.transform_helper.convert_xy_and_theta_to_pose(particle.x, particle.y, particle.theta))
